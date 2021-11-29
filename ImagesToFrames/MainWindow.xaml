@@ -5,34 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImagesToFrames"
         mc:Ignorable="d"
-		Background="#FF0C0C0C"
 		ResizeMode="CanMinimize"
 		Icon="resources/icon.ico"
 		Closing="Window_Closing"
-        Title="Frame File Generator" Height="350" Width="320">
+        Style="{DynamicResource StarboundWindow}"
+		Title="Frame File Generator" Height="350" Width="320"
+		>
 
 	<Grid>
-		<StackPanel Margin="10">
-			<DockPanel x:Name="Image_Path_Panel" Height="38" LastChildFill="False">
-				<Label Content="Image Path:" Height="31" Width="77" VerticalAlignment="Center" Margin="0,2"/>
-				<TextBox x:Name="ImagePathTextField" Height="24" TextWrapping="NoWrap" VerticalAlignment="Center" Width="145" Margin="0,7" MaxLines="1" MinLines="1"/>
-				<Button VerticalAlignment="Center" Width="47" Click="LocateFile_Click" FontSize="8" Margin="2,4,0,5">
-					<Grid>
-						<Image Source="resources/button.png" RenderOptions.BitmapScalingMode="NearestNeighbor" Stretch="Fill"/>
-						<Label Content="Locate" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
-					</Grid>
-				</Button>
+		<StackPanel>
+			<DockPanel Background="#2C2C2C" LastChildFill="False">
+				<local:ControlMenuItem x:Name="File_MenuItem"  Content="File" Margin="10,0,0,0"/>
 			</DockPanel>
-			<DockPanel x:Name="Output_Path_Panel" Height="38" LastChildFill="False">
-				<Label Content="Output Path:" Height="31" Width="77" VerticalAlignment="Center" Margin="0,2"/>
-				<TextBox x:Name="OutputPathField" Height="24" TextWrapping="NoWrap" VerticalAlignment="Center" Width="145" Margin="0,7" MaxLines="1" MinLines="1"/>
-				<Button VerticalAlignment="Center" Width="47" Click="SetOutputPath_Click" FontSize="8" Margin="2,4,0,5">
-					<Grid>
-						<Image Source="resources/button.png" RenderOptions.BitmapScalingMode="NearestNeighbor" Stretch="Fill"/>
-						<Label Content="Locate" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
-					</Grid>
-				</Button>
-			</DockPanel>
+			<Grid x:Name="Image_Path_Panel" Height="38">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="13*"/>
+					<ColumnDefinition Width="26*"/>
+					<ColumnDefinition Width="11*"/>
+				</Grid.ColumnDefinitions>
+
+				<Label Content="Image Path:" VerticalAlignment="Center" Grid.Column="0"/>
+				<TextBox x:Name="ImagePathTextField" TextWrapping="NoWrap" VerticalAlignment="Center"  MaxLines="1" MinLines="1" Grid.Column="1"/>
+				<Button VerticalAlignment="Center" Click="LocateFile_Click" FontSize="13" Content="..." Margin="0,0,30,0" Grid.Column="2"/>
+			</Grid>
+			
 			<DockPanel x:Name="Size_Panel" Height="33" LastChildFill="False">
 				<Label Content="Size:" Height="38" VerticalAlignment="Top" Width="80"/>
 				<Label Content="X:" Height="38" VerticalAlignment="Top" Width="21"/>
@@ -40,18 +36,8 @@
 				<Label Content="Y:" Height="38" VerticalAlignment="Top" Width="21"/>
 				<TextBox x:Name="SizeFieldY" Height="24" Text="0" VerticalAlignment="Top" Width="33" Margin="0,4,0,0" MaxLines="1" PreviewTextInput="PreviewTextInput" DataObject.Pasting="Pasting_Event"/>
 			</DockPanel>
-			<Button HorizontalAlignment="Left" VerticalAlignment="Top" Width="132" Click="FillFromImage_Click">
-				<Grid>
-					<Image Source="resources/button.png" RenderOptions.BitmapScalingMode="NearestNeighbor" Stretch="Fill"/>
-					<Label Content="Use Image Dimensions" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				</Grid>
-			</Button>
-			<Button HorizontalAlignment="Left" VerticalAlignment="Top" Width="132" Click="DivideByFrames_Click">
-				<Grid>
-					<Image Source="resources/button.png" RenderOptions.BitmapScalingMode="NearestNeighbor" Stretch="Fill"/>
-					<Label Content="Divide By Frames" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				</Grid>
-			</Button>
+			<Button HorizontalAlignment="Left" VerticalAlignment="Top" Width="132" Click="FillFromImage_Click" Content="Use Image Dimensions"/>
+			<Button HorizontalAlignment="Left" VerticalAlignment="Top" Width="132" Click="DivideByFrames_Click" Content="Divide By Frames"/>
 			<DockPanel x:Name="Dimensions_Panel" Height="33" LastChildFill="False">
 				<Label Content="Dimensions:" Height="38" VerticalAlignment="Top" Width="80"/>
 				<Label Content="X:" Height="38" VerticalAlignment="Top" Width="21"/>
@@ -61,43 +47,12 @@
 			</DockPanel>
 			<DockPanel Height="30">
 				<Label Content="Use Custom Frame Names:" VerticalAlignment="Center" />
-				<CheckBox x:Name="UseCustomFrameNames_Check" VerticalAlignment="Center" HorizontalAlignment="Left" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked" Foreground="White" Background="Black" BorderBrush="Gray" Style="{DynamicResource CheckBoxStyleSb}"/>
+				<CheckBox x:Name="UseCustomFrameNames_Check" VerticalAlignment="Center" HorizontalAlignment="Left" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
 			</DockPanel>
 			<ScrollViewer x:Name="FramesScroller" Height="150" Visibility="Collapsed" Background="#FF151515">
 				<StackPanel x:Name="FramesStack" Height="30" VerticalAlignment="Top">
 				</StackPanel>
 			</ScrollViewer>
-			<DockPanel>
-				<Button HorizontalAlignment="Left" VerticalAlignment="Top" Width="92" Click="SaveFrame_Click">
-					<Grid>
-						<Image Source="resources/button.png" RenderOptions.BitmapScalingMode="NearestNeighbor" Stretch="Fill"/>
-						<Label Content="Save" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="15"/>
-					</Grid>
-				</Button>
-				<Button HorizontalAlignment="Left" VerticalAlignment="Top" Width="92" Click="LoadFrame_Click">
-					<Grid>
-						<Image Source="resources/button.png" RenderOptions.BitmapScalingMode="NearestNeighbor" Stretch="Fill"/>
-						<Label Content="Load" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="15"/>
-					</Grid>
-				</Button>
-			</DockPanel>
-
 		</StackPanel>
 	</Grid>
-	<Window.Resources>
-		<Style TargetType="Label">
-			<Setter Property="FontFamily" Value="/ImagesToFrames;component/#VT323"/>
-			<Setter Property="Foreground" Value="White"/>
-		</Style>
-		<Style TargetType="TextBox">
-			<Setter Property="Background" Value="Black"/>
-			<Setter Property="FontFamily" Value="/ImagesToFrames;component/#VT323"/>
-			<Setter Property="Foreground" Value="White"/>
-			<Setter Property="BorderBrush" Value="Gray"/>
-		</Style>
-		<Style TargetType="Button">
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="BorderBrush" Value="Transparent"/>
-		</Style>
-	</Window.Resources>
 </Window>

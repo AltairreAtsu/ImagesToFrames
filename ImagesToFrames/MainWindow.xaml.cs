@@ -21,15 +21,15 @@ namespace ImagesToFrames
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window
+	public partial class MainWindow : Window, IFileManager
 	{
-		private SettingsManager settingsManager;
 		private AppLogger AppLogger;
 		private static readonly Regex _regex = new Regex("[^0-9]"); //regex that matches disallowed text
 		private static bool IsTextAllowed(string text)
 		{
 			return !_regex.IsMatch(text);
 		}
+		private string targetFile = "";
 
 		private List<FrameNameControl> frameNameControls;
 
@@ -37,18 +37,12 @@ namespace ImagesToFrames
 		{
 			InitializeComponent();
 
-			LoadConfig();
 			StartLogging();
 			frameNameControls = new List<FrameNameControl>();
+
+			InitializeFileMenu();
 		}
 
-		private void LoadConfig()
-		{
-			settingsManager = new SettingsManager();
-			bool success = settingsManager.LoadConfiguration();
-			if (!success) System.Windows.MessageBox.Show("Error loading or creating config flie.");
-			OutputPathField.Text = settingsManager.settings.defaultExportPath;
-		}
 		private void StartLogging()
 		{
 			AppLogger = new AppLogger();
@@ -61,7 +55,17 @@ namespace ImagesToFrames
 				System.Windows.MessageBox.Show("Error starting logging. Unable to create filestream.");
 			}
 		}
+		private void InitializeFileMenu()
+		{
+			var list = new List<IControlMenuOption>();
+			list.Add(new FileNewOption(this));
+			list.Add(new FileLoadOption(this));
+			list.Add(new FileSaveOption(this));
+			list.Add(new FileSaveAsOption(this));
+			File_MenuItem.InitializeOptions(list);
+		}
 
+		#region Parsing Values
 		private int[] TryParseDimensionsArray()
 		{
 			try
@@ -101,7 +105,37 @@ namespace ImagesToFrames
 			return false;
 		}
 
-		private void SaveFrame_Click(object sender, RoutedEventArgs e)
+		private static void GenerateDefaultFrameNames(StandardFrame frame, int xDimension, int yDimension)
+		{
+			string[,] names;
+			if (xDimension == 1 && yDimension == 1)
+			{
+				names = new string[,] { { "default" } };
+
+			}
+			else
+			{
+				names = new string[yDimension, xDimension];
+				int i = 0;
+				for (int row = 0; row < yDimension; row++)
+				{
+					for (int column = 0; column < xDimension; column++)
+					{
+						names[row, column] = "default." + i;
+						i++;
+					}
+				}
+
+				frame.aliases = new Dictionary<string, string>();
+				frame.aliases.Add("default.default", "default.0");
+
+			}
+			frame.frameGrid.names = names;
+		}
+		#endregion
+
+		#region File Management
+		private void SaveFrame(string path)
 		{
 			StandardFrame frame = new StandardFrame();
 
@@ -129,15 +163,15 @@ namespace ImagesToFrames
 			}
 
 			string imageName = System.IO.Path.GetFileName(ImagePathTextField.Text);
-			string path = OutputPathField.Text + "\\" + imageName;
 			path = System.IO.Path.ChangeExtension(path, "frames");
 			bool success = FrameGenerator.GenerateFramesFile(frame, path);
 			if (!success)
 			{
 				System.Windows.MessageBox.Show("Error: Failed to generate frames file. Check for Invalid file paths.");
 			}
+			targetFile = path;
 		}
-		private void LoadFrame_Click(object sender, RoutedEventArgs e)
+		private void LoadFrame()
 		{
 			OpenFileDialog openFileDialog = new OpenFileDialog();
 			openFileDialog.Filter = "Frames files (*.frames)|*.frames|All files (*.*)|*.*";
@@ -149,14 +183,15 @@ namespace ImagesToFrames
 					System.Windows.MessageBox.Show("Error Loading Frame file from path. Please ensure correct path is used and program has file access.");
 					return;
 				}
+				targetFile = (openFileDialog.FileName);
 				FillInterfraceFromFrame(frame, openFileDialog.FileName);
 			}
 		}
+		
 		private void FillInterfraceFromFrame(StandardFrame frame, string path)
 		{
 			ImagePathTextField.Text = path;
 			string directoryPath = System.IO.Path.GetDirectoryName(path);
-			OutputPathField.Text = directoryPath;
 
 			try
 			{
@@ -219,34 +254,48 @@ namespace ImagesToFrames
 				return;
 			}
 		}
-
-		private static void GenerateDefaultFrameNames(StandardFrame frame, int xDimension, int yDimension)
+		public void ClearInterface()
 		{
-			string[,] names;
-			if (xDimension == 1 && yDimension == 1)
-			{
-				names = new string[,] { { "default" } };
-
-			}
-			else
-			{
-				names = new string[yDimension, xDimension];
-				int i = 0;
-				for (int row = 0; row < yDimension; row++)
-				{
-					for (int column = 0; column < xDimension; column++)
-					{
-						names[row, column] = "default." + i;
-						i++;
-					}
-				}
-
-				frame.aliases = new Dictionary<string, string>();
-				frame.aliases.Add("default.default", "default.0");
-
-			}
-			frame.frameGrid.names = names;
+			ImagePathTextField.Text = "";
+			SizeFieldX.Text = "";
+			SizeFieldY.Text = "";
+			DimensionsFieldX.Text = "1";
+			DimensionsFieldY.Text = "1";
+			UseCustomFrameNames_Check.IsChecked = false;
 		}
+
+		public void NewFile()
+		{
+			targetFile = "";
+			ClearInterface();
+		}
+		public void Save()
+		{
+			if (targetFile.Equals(""))
+			{
+				SaveAs();
+				return;
+			}
+			SaveFrame(targetFile);
+		}
+		public void SaveAs()
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog();
+			saveFileDialog.Filter = "Frames File|*.frames";
+			saveFileDialog.Title = "Save a Frames File";
+			saveFileDialog.ShowDialog();
+
+			if (saveFileDialog.FileName != "")
+			{
+				SaveFrame(saveFileDialog.FileName);
+			}
+		}
+		public void Load()
+		{
+			LoadFrame();
+		}
+		#endregion
+		
 
 		private void LocateFile_Click(object sender, RoutedEventArgs e)
 		{
@@ -257,7 +306,6 @@ namespace ImagesToFrames
 				ImagePathTextField.Text = openFileDialog.FileName;
 			}
 		}
-
 		private void FillFromImage_Click(object sender, RoutedEventArgs e)
 		{
 			int[] imageSize = FrameGenerator.LoadDimensionsFromImage(ImagePathTextField.Text);
@@ -269,7 +317,6 @@ namespace ImagesToFrames
 			SizeFieldX.Text = imageSize[0].ToString();
 			SizeFieldY.Text = imageSize[1].ToString();
 		}
-
 		private void DivideByFrames_Click(object sender, RoutedEventArgs e)
 		{
 			int[] imageSize = FrameGenerator.LoadDimensionsFromImage(ImagePathTextField.Text);
@@ -284,16 +331,7 @@ namespace ImagesToFrames
 			SizeFieldY.Text = (imageSize[1] / dimensions[1]).ToString();
 		}
 
-		private void SetOutputPath_Click(object sender, RoutedEventArgs e)
-		{
-			FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-			System.Windows.Forms.DialogResult dr = folderBrowserDialog.ShowDialog();
-			if(dr == System.Windows.Forms.DialogResult.OK)
-			{
-				OutputPathField.Text = folderBrowserDialog.SelectedPath;
-			}
-		}
-
+		#region Textbox Validation
 		private void PreviewTextInput(object sender, TextCompositionEventArgs e)
 		{
 			e.Handled = !IsTextAllowed(e.Text);
@@ -313,7 +351,9 @@ namespace ImagesToFrames
 				e.CancelCommand();
 			}
 		}
+		#endregion
 
+		#region Custom Frame Names UI Handler
 		private void CheckBox_Checked(object sender, RoutedEventArgs e)
 		{
 			OpenFramesScroller();
@@ -341,13 +381,13 @@ namespace ImagesToFrames
 		private void PopulateStack()
 		{
 			int[] dimensions = TryParseDimensionsArray();
-			if(dimensions == null)
+			if (dimensions == null)
 			{
 				CloseFramesScroller();
 				return;
 			}
 			int numberOfFrames = dimensions[0] * dimensions[1];
-			for(int i = 0; i < numberOfFrames; i++)
+			for (int i = 0; i < numberOfFrames; i++)
 			{
 				AddFrameNameControl(i);
 			}
@@ -362,14 +402,14 @@ namespace ImagesToFrames
 			}
 			int numberOfFrames = dimensions[0] * dimensions[1];
 
-			if(numberOfFrames > frameNameControls.Count)
+			if (numberOfFrames > frameNameControls.Count)
 			{
 				for (int i = frameNameControls.Count; i < numberOfFrames; i++)
 				{
 					AddFrameNameControl(i);
 				}
 			}
-			if(numberOfFrames < frameNameControls.Count)
+			if (numberOfFrames < frameNameControls.Count)
 			{
 				int countToRemove = frameNameControls.Count - numberOfFrames;
 				int startingIndex = frameNameControls.Count - countToRemove;
@@ -399,7 +439,7 @@ namespace ImagesToFrames
 				if (string.IsNullOrWhiteSpace(frameName)) return false;
 
 				frameNames[i] = frameName;
-				
+
 				if (!string.IsNullOrWhiteSpace(alias))
 				{
 					aliases.Add(alias, frameName);
@@ -415,11 +455,11 @@ namespace ImagesToFrames
 			string[,] twoDimensionaArray = new string[rows, columns];
 			int column = 0;
 			int row = 0;
-			for(int i = 0; i < flatArray.Length; i++)
+			for (int i = 0; i < flatArray.Length; i++)
 			{
 				twoDimensionaArray[row, column] = flatArray[i];
 				column++;
-				if(column == columns)
+				if (column == columns)
 				{
 					column = 0;
 					row++;
@@ -432,9 +472,10 @@ namespace ImagesToFrames
 		{
 			System.Windows.Controls.TextBox tb = (System.Windows.Controls.TextBox)sender;
 			if (string.IsNullOrWhiteSpace(tb.Text)) return;
-			if(UseCustomFrameNames_Check != null && (bool)UseCustomFrameNames_Check.IsChecked)
+			if (UseCustomFrameNames_Check != null && (bool)UseCustomFrameNames_Check.IsChecked)
 				ReEvaluateStack();
 		}
+		#endregion
 
 		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{

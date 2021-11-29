@@ -99,11 +99,23 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AppLogger.cs" />
+    <Compile Include="ControlMenuItem.xaml.cs">
+      <DependentUpon>ControlMenuItem.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FileLoadOption.cs" />
+    <Compile Include="FileNewOption.cs" />
+    <Compile Include="FileSaveAsOption.cs" />
+    <Compile Include="FileSaveOption.cs" />
     <Compile Include="FrameNameControl.xaml.cs">
       <DependentUpon>FrameNameControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SettingsManager.cs" />
+    <Compile Include="IControlMenuOption.cs" />
+    <Compile Include="IFileManager.cs" />
     <Compile Include="StandardFrame.cs" />
+    <Page Include="ControlMenuItem.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="FrameNameControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -121,6 +133,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="resources\StarboundTheme.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -146,29 +162,12 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <Resource Include="VT323-Regular.ttf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="resources\GlassEffect.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="resources\icon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="resources\button.png" />
-    <Resource Include="resources\buttonsquare.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="resources\NavigateBack.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="resources\NavigateForward.png" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -181,6 +180,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="resources\icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
